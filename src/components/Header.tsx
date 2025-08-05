@@ -31,12 +31,6 @@ export default function Header() {
           
           <nav className="hidden md:flex items-center space-x-6">
             <Link 
-              to="/" 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Home
-            </Link>
-            <Link 
               to="/events" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
