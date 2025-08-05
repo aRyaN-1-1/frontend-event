@@ -60,7 +60,7 @@ export type Database = {
           name: string
           profile_image_url: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           about: string
@@ -71,7 +71,7 @@ export type Database = {
           name: string
           profile_image_url?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           about?: string
@@ -82,7 +82,7 @@ export type Database = {
           name?: string
           profile_image_url?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
