@@ -27,6 +27,7 @@ interface EventData {
   coaches?: {
     id: string;
     name: string;
+    about: string;
     profile_image_url?: string;
   };
 }
@@ -59,6 +60,7 @@ export default function EventDetails() {
           coaches (
             id,
             name,
+            about,
             profile_image_url
           )
         `)
@@ -301,7 +303,8 @@ export default function EventDetails() {
                     </Avatar>
                     <div>
                       <p className="font-semibold text-lg">{event.coaches.name}</p>
-                      <p className="text-muted-foreground">Click to view profile</p>
+                      <p className="text-muted-foreground text-sm">{event.coaches.about.substring(0, 100)}...</p>
+                      <p className="text-primary text-sm font-medium">Click to view full profile</p>
                     </div>
                   </div>
                 </CardContent>
