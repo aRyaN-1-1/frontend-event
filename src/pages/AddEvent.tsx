@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
@@ -19,6 +19,7 @@ export default function AddEvent() {
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [coaches, setCoaches] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -28,8 +29,25 @@ export default function AddEvent() {
     location: '',
     event_date: '',
     price_per_person: '',
-    available_slots: ''
+    available_slots: '',
+    coach_id: ''
   });
+
+  // Load coaches
+  useEffect(() => {
+    const loadCoaches = async () => {
+      const { data: coachesData } = await supabase
+        .from('coaches')
+        .select('id, name')
+        .order('name');
+      
+      if (coachesData) {
+        setCoaches(coachesData);
+      }
+    };
+    
+    loadCoaches();
+  }, []);
 
   // Redirect if not admin
   if (!isAdmin) {
@@ -106,7 +124,8 @@ export default function AddEvent() {
         price_per_person: parseFloat(formData.price_per_person),
         available_slots: parseInt(formData.available_slots),
         image_url: imageUrl,
-        created_by: user?.id
+        created_by: user?.id,
+        coach_id: formData.coach_id || null
       };
 
       const { error } = await supabase
@@ -198,7 +217,7 @@ export default function AddEvent() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="event_type">Event Type *</Label>
                     <Select
@@ -229,6 +248,25 @@ export default function AddEvent() {
                       required
                       placeholder="Event location"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="coach">Coach</Label>
+                    <Select
+                      value={formData.coach_id}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, coach_id: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a coach" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {coaches.map((coach) => (
+                          <SelectItem key={coach.id} value={coach.id}>
+                            {coach.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
