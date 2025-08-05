@@ -148,11 +148,19 @@ export default function AddCoach() {
         user_id: user?.id
       };
 
-      const { error } = await supabase
+      console.log('Creating coach with data:', coachData);
+      console.log('Current user:', user);
+      console.log('Is admin:', isAdmin);
+
+      const { data, error } = await supabase
         .from('coaches')
-        .insert([coachData]);
+        .insert([coachData])
+        .select();
+
+      console.log('Insert result:', { data, error });
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
