@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          available_slots: number
+          created_at: string
+          created_by: string | null
+          description: string
+          event_date: string
+          event_type: string
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+          price_per_person: number
+          short_description: string
+          updated_at: string
+        }
+        Insert: {
+          available_slots?: number
+          created_at?: string
+          created_by?: string | null
+          description: string
+          event_date: string
+          event_type: string
+          id?: string
+          image_url?: string | null
+          location: string
+          name: string
+          price_per_person: number
+          short_description: string
+          updated_at?: string
+        }
+        Update: {
+          available_slots?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          price_per_person?: number
+          short_description?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
