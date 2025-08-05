@@ -10,6 +10,9 @@ import NotFound from "./pages/NotFound";
 import Coaches from "./pages/Coaches";
 import AddEvent from "./pages/AddEvent";
 import AddCoach from "./pages/AddCoach";
+import EventDetails from "./pages/EventDetails";
+import CoachProfile from "./pages/CoachProfile";
+import MyBookings from "./pages/MyBookings";
 
 const queryClient = new QueryClient();
 
@@ -23,9 +26,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/events" element={<Index />} />
+            <Route path="/events/:id" element={<EventDetails />} />
             <Route path="/coaches" element={<Coaches />} />
+            <Route path="/coaches/:id" element={<CoachProfile />} />
             <Route path="/add-event" element={<AddEvent />} />
             <Route path="/add-coach" element={<AddCoach />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

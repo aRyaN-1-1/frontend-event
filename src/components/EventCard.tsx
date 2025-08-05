@@ -16,15 +16,18 @@ export interface Event {
   available_slots: number;
   price_per_person: number;
   event_date: string;
+  sold_out?: boolean;
 }
 
 interface EventCardProps {
   event: Event;
   showDeleteButton?: boolean;
   onDelete?: (id: string) => void;
+  showSoldOutToggle?: boolean;
+  onToggleSoldOut?: (id: string) => void;
 }
 
-export default function EventCard({ event, showDeleteButton = false, onDelete }: EventCardProps) {
+export default function EventCard({ event, showDeleteButton = false, onDelete, showSoldOutToggle = false, onToggleSoldOut }: EventCardProps) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -35,6 +38,13 @@ export default function EventCard({ event, showDeleteButton = false, onDelete }:
     e.stopPropagation();
     if (onDelete) {
       onDelete(event.id);
+    }
+  };
+
+  const handleSoldOutToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleSoldOut) {
+      onToggleSoldOut(event.id);
     }
   };
 
@@ -60,6 +70,13 @@ export default function EventCard({ event, showDeleteButton = false, onDelete }:
             {event.event_type}
           </Badge>
         </div>
+        {event.sold_out && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <Badge variant="destructive" className="text-lg px-4 py-2">
+              SOLD OUT
+            </Badge>
+          </div>
+        )}
       </div>
       
       <CardContent className="p-4 space-y-3">
@@ -94,15 +111,29 @@ export default function EventCard({ event, showDeleteButton = false, onDelete }:
           </div>
         </div>
 
-        {showDeleteButton && (
-          <Button
-            onClick={handleDeleteClick}
-            variant="destructive"
-            size="sm"
-            className="w-full mt-3"
-          >
-            Delete Event
-          </Button>
+        {(showDeleteButton || showSoldOutToggle) && (
+          <div className="space-y-2 mt-3">
+            {showSoldOutToggle && (
+              <Button
+                onClick={handleSoldOutToggle}
+                variant={event.sold_out ? "default" : "destructive"}
+                size="sm"
+                className="w-full"
+              >
+                Mark as {event.sold_out ? 'Available' : 'Sold Out'}
+              </Button>
+            )}
+            {showDeleteButton && (
+              <Button
+                onClick={handleDeleteClick}
+                variant="destructive"
+                size="sm"
+                className="w-full"
+              >
+                Delete Event
+              </Button>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

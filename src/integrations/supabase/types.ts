@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date?: string
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_events: {
         Row: {
           coach_id: string
@@ -101,6 +139,7 @@ export type Database = {
           name: string
           price_per_person: number
           short_description: string
+          sold_out: boolean
           updated_at: string
         }
         Insert: {
@@ -117,6 +156,7 @@ export type Database = {
           name: string
           price_per_person: number
           short_description: string
+          sold_out?: boolean
           updated_at?: string
         }
         Update: {
@@ -133,6 +173,7 @@ export type Database = {
           name?: string
           price_per_person?: number
           short_description?: string
+          sold_out?: boolean
           updated_at?: string
         }
         Relationships: [

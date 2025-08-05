@@ -119,6 +119,37 @@ export default function EventsHomepage() {
     }
   };
 
+  const handleToggleSoldOut = async (eventId: string) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      const { error } = await supabase
+        .from('events')
+        .update({ sold_out: !event.sold_out })
+        .eq('id', eventId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: `Event marked as ${!event.sold_out ? 'sold out' : 'available'}.`
+      });
+
+      // Refresh events
+      fetchEvents();
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update event status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Calculate pagination
   const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
   const startIndex = (currentPage - 1) * eventsPerPage;
@@ -190,6 +221,8 @@ export default function EventsHomepage() {
                       event={event}
                       showDeleteButton={isAdmin}
                       onDelete={handleDeleteEvent}
+                      showSoldOutToggle={isAdmin}
+                      onToggleSoldOut={handleToggleSoldOut}
                     />
                   ))}
                 </div>

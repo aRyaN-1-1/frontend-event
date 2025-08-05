@@ -48,6 +48,14 @@ export default function Header() {
             >
               Coaches
             </Link>
+            {user && (
+              <Link 
+                to="/my-bookings" 
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                My Bookings
+              </Link>
+            )}
           </nav>
         </div>
 
