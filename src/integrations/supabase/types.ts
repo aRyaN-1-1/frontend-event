@@ -14,9 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_events: {
+        Row: {
+          coach_id: string
+          created_at: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_events_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaches: {
+        Row: {
+          about: string
+          areas_of_expertise: string[]
+          certifications: string[]
+          created_at: string
+          id: string
+          name: string
+          profile_image_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          about: string
+          areas_of_expertise?: string[]
+          certifications?: string[]
+          created_at?: string
+          id?: string
+          name: string
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          about?: string
+          areas_of_expertise?: string[]
+          certifications?: string[]
+          created_at?: string
+          id?: string
+          name?: string
+          profile_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           available_slots: number
+          coach_id: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -32,6 +105,7 @@ export type Database = {
         }
         Insert: {
           available_slots?: number
+          coach_id?: string | null
           created_at?: string
           created_by?: string | null
           description: string
@@ -47,6 +121,7 @@ export type Database = {
         }
         Update: {
           available_slots?: number
+          coach_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -60,7 +135,15 @@ export type Database = {
           short_description?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
