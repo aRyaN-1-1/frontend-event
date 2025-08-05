@@ -116,7 +116,7 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
       {/* Location */}
       <div className="space-y-2">
         <Label>Location</Label>
-        <Select value={filters.location} onValueChange={(value) => handleFilterChange('location', value)}>
+        <Select value={filters.location || 'all'} onValueChange={(value) => handleFilterChange('location', value === 'all' ? '' : value)}>
           <SelectTrigger>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -124,7 +124,7 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Locations</SelectItem>
+            <SelectItem value="all">All Locations</SelectItem>
             {locations.map((location) => (
               <SelectItem key={location} value={location}>
                 {location}
