@@ -5,12 +5,15 @@ import EventCard, { Event } from '@/components/EventCard';
 import Header from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function EventsHomepage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 9;
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -83,6 +86,7 @@ export default function EventsHomepage() {
     }
 
     setFilteredEvents(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [events]);
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -113,6 +117,17 @@ export default function EventsHomepage() {
     }
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+  const startIndex = (currentPage - 1) * eventsPerPage;
+  const endIndex = startIndex + eventsPerPage;
+  const currentEvents = filteredEvents.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -141,7 +156,7 @@ export default function EventsHomepage() {
                 Discover Amazing Events
               </h1>
               <p className="text-muted-foreground">
-                Find events that inspire and educate. Showing {filteredEvents.length} of {events.length} events.
+                Find events that inspire and educate. Showing {startIndex + 1}-{Math.min(endIndex, filteredEvents.length)} of {filteredEvents.length} events.
               </p>
             </div>
 
@@ -153,16 +168,57 @@ export default function EventsHomepage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    showDeleteButton={isAdmin}
-                    onDelete={handleDeleteEvent}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      showDeleteButton={isAdmin}
+                      onDelete={handleDeleteEvent}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(page)}
+                          className="min-w-[40px]"
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>

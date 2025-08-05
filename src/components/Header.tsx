@@ -25,7 +25,7 @@ export default function Header() {
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center space-x-6">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" onClick={() => window.location.reload()} className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-primary">ImpactBoard</h1>
           </Link>
           

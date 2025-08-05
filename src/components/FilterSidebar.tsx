@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Calendar, MapPin, Euro, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,7 @@ const eventTypes = ['Workshop', 'Conference', 'Bootcamp', 'Retreat', 'Webinar'];
 const locations = ['Berlin, Germany', 'Munich, Germany', 'Hamburg, Germany', 'Frankfurt, Germany', 'Cologne, Germany', 'Dresden, Germany'];
 
 export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [filters, setFilters] = useState<EventFilters>({
     search: '',
     eventTypes: [],
@@ -35,6 +36,13 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
     priceRange: [1, 200],
     date: undefined
   });
+
+  // Auto-focus search input when component mounts
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
 
   const handleFilterChange = (key: keyof EventFilters, value: any) => {
     const newFilters = { ...filters, [key]: value };
@@ -85,6 +93,7 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
+            ref={searchInputRef}
             id="search"
             placeholder="Search by event name..."
             value={filters.search}
