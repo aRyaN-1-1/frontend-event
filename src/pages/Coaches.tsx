@@ -4,8 +4,10 @@ import Header from '@/components/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 interface Coach {
   id: string;
@@ -23,6 +25,7 @@ export default function Coaches() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -72,12 +75,22 @@ export default function Coaches() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Meet Our Coaches
-          </h1>
-          <p className="text-muted-foreground">
-            Discover experienced professionals ready to help you achieve your goals.
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Meet Our Coaches
+              </h1>
+              <p className="text-muted-foreground">
+                Discover experienced professionals ready to help you achieve your goals.
+              </p>
+            </div>
+            {isAdmin && (
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Coach
+              </Button>
+            )}
+          </div>
         </div>
 
         {coaches.length === 0 ? (
