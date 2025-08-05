@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
@@ -19,6 +19,7 @@ export default function AddCoach() {
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [coachCount, setCoachCount] = useState<number>(0);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,6 +36,27 @@ export default function AddCoach() {
     navigate('/');
     return null;
   }
+
+  // Fetch current coach count
+  useEffect(() => {
+    const fetchCoachCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('coaches')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        setCoachCount(count || 0);
+      } catch (error) {
+        console.error('Error fetching coach count:', error);
+      }
+    };
+
+    fetchCoachCount();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -140,13 +162,24 @@ export default function AddCoach() {
       });
 
       navigate('/coaches');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating coach:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create coach profile. Please try again.",
-        variant: "destructive"
-      });
+      
+      // Check if it's a coach limit error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Maximum number of coaches')) {
+        toast({
+          title: "Coach Limit Reached",
+          description: "Maximum number of coaches (30) has been reached. Cannot add more coaches.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create coach profile. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -173,7 +206,19 @@ export default function AddCoach() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Coach Profile</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Coach Profile</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Coaches: {coachCount}/30
+                </div>
+              </div>
+              {coachCount >= 30 && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 mt-2">
+                  <p className="text-destructive text-sm font-medium">
+                    Coach limit reached! Maximum of 30 coaches allowed.
+                  </p>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
