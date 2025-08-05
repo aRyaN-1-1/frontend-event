@@ -33,7 +33,7 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
     search: '',
     eventTypes: [],
     location: '',
-    priceRange: [1, 200],
+    priceRange: [1, 500],
     date: undefined
   });
 
@@ -61,7 +61,7 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
       search: '',
       eventTypes: [],
       location: '',
-      priceRange: [1, 200],
+      priceRange: [1, 500],
       date: undefined
     };
     setFilters(clearedFilters);
@@ -147,19 +147,50 @@ export default function FilterSidebar({ onFiltersChange }: FilterSidebarProps) {
       <div className="space-y-3">
         <Label className="flex items-center gap-2">
           <Euro className="h-4 w-4" />
-          Price Range: €{filters.priceRange[0]} - €{filters.priceRange[1]}
+          Price Range
         </Label>
-        <Slider
-          value={filters.priceRange}
-          onValueChange={(value) => handleFilterChange('priceRange', value as [number, number])}
-          max={200}
-          min={1}
-          step={5}
-          className="w-full"
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>€1</span>
-          <span>€200</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="min-price" className="text-xs text-muted-foreground">Min Price</Label>
+            <div className="relative">
+              <Euro className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+              <Input
+                id="min-price"
+                type="number"
+                min={1}
+                max={filters.priceRange[1] - 5}
+                value={filters.priceRange[0]}
+                onChange={(e) => {
+                  const newMin = Math.max(1, parseInt(e.target.value) || 1);
+                  handleFilterChange('priceRange', [newMin, filters.priceRange[1]]);
+                }}
+                className="pl-6 text-sm"
+                placeholder="1"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="max-price" className="text-xs text-muted-foreground">Max Price</Label>
+            <div className="relative">
+              <Euro className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+              <Input
+                id="max-price"
+                type="number"
+                min={filters.priceRange[0] + 5}
+                max={500}
+                value={filters.priceRange[1]}
+                onChange={(e) => {
+                  const newMax = Math.min(500, parseInt(e.target.value) || 200);
+                  handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
+                }}
+                className="pl-6 text-sm"
+                placeholder="200"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="text-center text-sm text-muted-foreground">
+          €{filters.priceRange[0]} - €{filters.priceRange[1]}
         </div>
       </div>
 
