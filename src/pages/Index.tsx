@@ -1,12 +1,19 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Header from '@/components/Header';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen">
+      <Header />
+      <main className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4 text-foreground">
+            Welcome to ImpactBoard
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Discover amazing events and connect with expert coaches
+          </p>
+        </div>
+      </main>
     </div>
   );
 };
