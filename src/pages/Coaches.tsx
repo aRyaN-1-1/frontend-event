@@ -8,6 +8,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface Coach {
   id: string;
@@ -85,10 +86,12 @@ export default function Coaches() {
               </p>
             </div>
             {isAdmin && (
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Coach
-              </Button>
+              <Link to="/add-coach">
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Coach
+                </Button>
+              </Link>
             )}
           </div>
         </div>

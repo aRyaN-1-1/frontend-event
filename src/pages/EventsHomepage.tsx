@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import FilterSidebar, { EventFilters } from '@/components/FilterSidebar';
 import EventCard, { Event } from '@/components/EventCard';
 import Header from '@/components/Header';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -163,10 +164,12 @@ export default function EventsHomepage() {
                   </p>
                 </div>
                 {isAdmin && (
-                  <Button className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Event
-                  </Button>
+                  <Link to="/add-event">
+                    <Button className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Event
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
