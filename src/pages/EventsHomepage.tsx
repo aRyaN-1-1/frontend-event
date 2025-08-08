@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import FilterSidebar, { EventFilters } from '@/components/FilterSidebar';
 import EventCard, { Event } from '@/components/EventCard';
 import Header from '@/components/Header';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import AnimatedPage from '@/components/AnimatedPage';
 
 export default function EventsHomepage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -16,20 +17,14 @@ export default function EventsHomepage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 9;
+  const [category, setCategory] = useState<string>('');
+  const [date, setDate] = useState<string>('');
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
   const fetchEvents = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('event_date', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
+      const data = await apiFetch<Event[]>(`/events`);
       setEvents(data || []);
       setFilteredEvents(data || []);
     } catch (error) {
@@ -93,14 +88,7 @@ export default function EventsHomepage() {
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', eventId);
-
-      if (error) {
-        throw error;
-      }
+      await apiFetch(`/events/${eventId}`, { method: 'DELETE' });
 
       toast({
         title: "Success",
@@ -123,15 +111,7 @@ export default function EventsHomepage() {
     try {
       const event = events.find(e => e.id === eventId);
       if (!event) return;
-
-      const { error } = await supabase
-        .from('events')
-        .update({ sold_out: !event.sold_out })
-        .eq('id', eventId);
-
-      if (error) {
-        throw error;
-      }
+      await apiFetch(`/events/${eventId}`, { method: 'PUT', body: { sold_out: !event.sold_out } });
 
       toast({
         title: "Success",
@@ -176,13 +156,14 @@ export default function EventsHomepage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="flex">
-        <FilterSidebar onFiltersChange={handleFiltersChange} />
+    <AnimatedPage>
+      <div className="min-h-screen bg-background">
+        <Header />
         
-        <main className="flex-1 p-6">
+        <div className="flex">
+          <FilterSidebar onFiltersChange={handleFiltersChange} />
+          
+          <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -271,5 +252,6 @@ export default function EventsHomepage() {
         </main>
       </div>
     </div>
+    </AnimatedPage>
   );
 }

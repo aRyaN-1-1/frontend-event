@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,27 +46,7 @@ export default function MyBookings() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          events (
-            id,
-            name,
-            short_description,
-            image_url,
-            location,
-            event_type,
-            available_slots,
-            price_per_person,
-            event_date
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('booking_date', { ascending: false });
-
-      if (error) throw error;
+      const data = await apiFetch<BookingData[]>(`/bookings/my-bookings`);
       setBookings(data || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -82,12 +62,7 @@ export default function MyBookings() {
 
   const cancelBooking = async (bookingId: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
+      await apiFetch(`/bookings/${bookingId}/cancel`, { method: 'PATCH' });
 
       setBookings(bookings.filter(booking => booking.id !== bookingId));
       toast({

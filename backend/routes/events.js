@@ -1,5 +1,6 @@
 import express from 'express';
 import dbService from '../services/dbService.js';
+import storageService from '../services/storageService.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -107,3 +108,16 @@ router.patch('/:id/sold-out', authenticateToken, requireAdmin, async (req, res) 
 });
 
 export default router;
+
+// Upload event image
+router.post('/upload-image', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { dataUrl } = req.body;
+    if (!dataUrl) return res.status(400).json({ error: 'Image data required' });
+    const url = await storageService.uploadBase64('event-images', 'events', dataUrl);
+    res.json({ url });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});

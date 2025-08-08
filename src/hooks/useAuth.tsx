@@ -1,110 +1,81 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch, setTokens, getRefreshToken } from '@/lib/api';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
   isLoading: boolean;
   isAdmin: boolean;
-  signUp: (email: string, password: string, metadata?: { name?: string; phone?: string }) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: { name?: string; phone?: string }) => Promise<{ error: any } | void>;
+  signIn: (email: string, password: string) => Promise<{ error: any } | void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-        
-        // Check admin status after session is set
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
+    // Attempt to load current user from backend using stored access token
+    (async () => {
+      try {
+        const me = await apiFetch<{ user: any; roles: string[] }>(`/auth/me`);
+        setUser(me.user);
+        setIsAdmin((me.roles || []).includes('admin'));
+      } catch {
+        // Try refresh
+        const refresh = getRefreshToken();
+        if (refresh) {
+          try {
+            const result = await apiFetch<{ user: any; session: { access_token: string; refresh_token?: string } }>(`/auth/refresh`, { method: 'POST', body: { refresh_token: refresh }, auth: false });
+            setTokens(result.session.access_token, result.session.refresh_token ?? refresh);
+            const me = await apiFetch<{ user: any; roles: string[] }>(`/auth/me`);
+            setUser(me.user);
+            setIsAdmin((me.roles || []).includes('admin'));
+          } catch {
+            setTokens(null, null);
+            setUser(null);
+            setIsAdmin(false);
+          }
         }
+      } finally {
+        setIsLoading(false);
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          checkAdminStatus(session.user.id);
-        }, 0);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    })();
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (!error && data) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-    }
-  };
+  // Admin flag comes from /auth/me; separate endpoint if needed later
 
   const signUp = async (email: string, password: string, metadata?: { name?: string; phone?: string }) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata
-      }
-    });
-    return { error };
+    await apiFetch(`/auth/signup`, { method: 'POST', body: { email, password, ...metadata }, auth: false });
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+    const result = await apiFetch<{ user: any; session: { access_token: string; refresh_token?: string } }>(`/auth/signin`, {
+      method: 'POST',
+      body: { email, password },
+      auth: false
     });
-    return { error };
+    setTokens(result.session.access_token, result.session.refresh_token);
+    setUser(result.user);
+    // Fetch roles
+    try {
+      const me = await apiFetch<{ user: any; roles: string[] }>(`/auth/me`);
+      setIsAdmin((me.roles || []).includes('admin'));
+    } catch {}
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try { await apiFetch(`/auth/signout`, { method: 'POST' }); } catch {}
+    setTokens(null, null);
+    setUser(null);
     setIsAdmin(false);
   };
 
   const value = {
     user,
-    session,
     isLoading,
     isAdmin,
     signUp,

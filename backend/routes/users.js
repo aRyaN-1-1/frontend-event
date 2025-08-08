@@ -1,5 +1,7 @@
 import express from 'express';
 import dbService from '../services/dbService.js';
+import authService from '../services/authService.js';
+import reportService from '../services/reportService.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -55,3 +57,14 @@ router.put('/profile', authenticateToken, async (req, res) => {
 });
 
 export default router;
+
+// Admin: download bookings report with summaries
+router.get('/admin/bookings-report', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const filePath = await reportService.generateSummaries();
+    return res.download(filePath, 'bookings.xlsx');
+  } catch (error) {
+    console.error('Report download error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});

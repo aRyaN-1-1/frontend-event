@@ -40,7 +40,10 @@ router.post('/signin', async (req, res) => {
     res.json({
       message: 'Signed in successfully',
       user: result.user,
-      session: result.session
+      session: {
+        access_token: result.session?.access_token || result.session?.accessToken || req.headers.authorization?.split(' ')[1] || null,
+        refresh_token: result.session?.refresh_token || result.session?.refreshToken || null
+      }
     });
   } catch (error) {
     console.error('Signin error:', error);

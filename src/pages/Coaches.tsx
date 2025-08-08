@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import Header from '@/components/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import AnimatedPage from '@/components/AnimatedPage';
+import AnimatedCard from '@/components/AnimatedCard';
 
 interface Coach {
   id: string;
@@ -42,15 +44,7 @@ export default function Coaches() {
   useEffect(() => {
     const fetchCoaches = async () => {
       try {
-        const { data, error } = await supabase
-          .from('coaches')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
+        const data = await apiFetch<Coach[]>(`/coaches`);
         setCoaches(data || []);
       } catch (error) {
         console.error('Error fetching coaches:', error);
@@ -69,14 +63,7 @@ export default function Coaches() {
 
   const handleDeleteCoach = async (coachId: string, coachName: string) => {
     try {
-      const { error } = await supabase
-        .from('coaches')
-        .delete()
-        .eq('id', coachId);
-
-      if (error) {
-        throw error;
-      }
+      await apiFetch(`/coaches/${coachId}`, { method: 'DELETE' });
 
       setCoaches(coaches.filter(coach => coach.id !== coachId));
       toast({
@@ -108,10 +95,11 @@ export default function Coaches() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
+    <AnimatedPage>
+      <div className="min-h-screen bg-background">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -141,9 +129,10 @@ export default function Coaches() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coaches.map((coach) => (
-              <Card key={coach.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coaches.map((coach) => (
+                  <AnimatedCard key={coach.id}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-white to-primary-50/30 rounded-xl border">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -214,10 +203,13 @@ export default function Coaches() {
                   </div>
                 </CardContent>
               </Card>
+            </AnimatedCard>
             ))}
           </div>
         )}
       </main>
     </div>
-  );
+  </div>
+  </AnimatedPage>
+);
 }

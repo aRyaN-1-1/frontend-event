@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,20 +41,12 @@ export default function AddCoach() {
   useEffect(() => {
     const fetchCoachCount = async () => {
       try {
-        const { count, error } = await supabase
-          .from('coaches')
-          .select('*', { count: 'exact', head: true });
-        
-        if (error) {
-          throw error;
-        }
-        
-        setCoachCount(count || 0);
+        const coaches = await apiFetch<any[]>(`/coaches`);
+        setCoachCount(coaches.length);
       } catch (error) {
         console.error('Error fetching coach count:', error);
       }
     };
-
     fetchCoachCount();
   }, []);
 
@@ -102,23 +94,14 @@ export default function AddCoach() {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `coaches/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('coach-images')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('coach-images')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { url } = await apiFetch<{ url: string }>(`/coaches/upload-image`, { method: 'POST', body: { dataUrl: base64 } });
+      return url;
     } catch (error) {
       console.error('Error uploading image:', error);
       return null;
@@ -130,6 +113,12 @@ export default function AddCoach() {
     setIsLoading(true);
 
     try {
+      if (!formData.name.trim() || formData.name.length < 2) {
+        throw new Error('Please enter a valid coach name');
+      }
+      if (!formData.about.trim() || formData.about.length < 10) {
+        throw new Error('Please provide a more detailed About section');
+      }
       let imageUrl = null;
       
       if (imageFile) {
@@ -152,17 +141,7 @@ export default function AddCoach() {
       console.log('Current user:', user);
       console.log('Is admin:', isAdmin);
 
-      const { data, error } = await supabase
-        .from('coaches')
-        .insert([coachData])
-        .select();
-
-      console.log('Insert result:', { data, error });
-
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      await apiFetch(`/coaches`, { method: 'POST', body: coachData });
 
       toast({
         title: "Success",

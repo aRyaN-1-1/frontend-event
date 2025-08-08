@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -53,21 +53,7 @@ export default function EventDetails() {
 
   const fetchEvent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select(`
-          *,
-          coaches (
-            id,
-            name,
-            about,
-            profile_image_url
-          )
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
+      const data = await apiFetch<EventData>(`/events/${id}`);
       setEvent(data);
     } catch (error) {
       console.error('Error fetching event:', error);
@@ -85,15 +71,9 @@ export default function EventDetails() {
     if (!user || !id) return;
 
     try {
-      const { data } = await supabase
-        .from('bookings')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('event_id', id)
-        .eq('status', 'active')
-        .single();
-
-      setIsBooked(!!data);
+      // Fetch user's active bookings and check in memory
+      const bookings = await apiFetch<{ id: string }[]>(`/bookings/my-bookings`);
+      setIsBooked(!!bookings.find(b => (b as any).events?.id === id));
     } catch (error) {
       // Not booked or error - assume not booked
       setIsBooked(false);
@@ -108,16 +88,7 @@ export default function EventDetails() {
 
     setIsBooking(true);
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            user_id: user.id,
-            event_id: id,
-          }
-        ]);
-
-      if (error) throw error;
+      await apiFetch(`/bookings`, { method: 'POST', body: { event_id: id } });
 
       setIsBooked(true);
       toast({
@@ -142,12 +113,7 @@ export default function EventDetails() {
     if (!event || !isAdmin) return;
 
     try {
-      const { error } = await supabase
-        .from('events')
-        .update({ sold_out: !event.sold_out })
-        .eq('id', event.id);
-
-      if (error) throw error;
+      await apiFetch(`/events/${event.id}`, { method: 'PUT', body: { sold_out: !event.sold_out } });
 
       setEvent({ ...event, sold_out: !event.sold_out });
       toast({
@@ -204,7 +170,7 @@ export default function EventDetails() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="aspect-video relative overflow-hidden rounded-lg mb-6">
+            <div className="aspect-video relative overflow-hidden rounded-xl mb-6 shadow-sm">
               {event.image_url ? (
                 <img
                   src={event.image_url}

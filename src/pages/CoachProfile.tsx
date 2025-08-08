@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,13 +33,7 @@ export default function CoachProfile() {
 
   const fetchCoach = async () => {
     try {
-      const { data, error } = await supabase
-        .from('coaches')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
+      const data = await apiFetch<CoachData>(`/coaches/${id}`);
       setCoach(data);
     } catch (error) {
       console.error('Error fetching coach:', error);

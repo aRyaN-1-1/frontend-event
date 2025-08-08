@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, Calendar, Euro } from 'lucide-react';
 import { format } from 'date-fns';
+import AnimatedCard from './AnimatedCard';
 
 export interface Event {
   id: string;
@@ -49,11 +50,11 @@ export default function EventCard({ event, showDeleteButton = false, onDelete, s
   };
 
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-lg transition-shadow duration-200 group"
-      onClick={handleCardClick}
-    >
-      <div className="aspect-video relative overflow-hidden rounded-t-lg">
+    <AnimatedCard onClick={handleCardClick}>
+      <Card 
+        className="cursor-pointer group border shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-white to-primary-50/30 rounded-xl"
+      >
+      <div className="aspect-video relative overflow-hidden rounded-t-xl">
         {event.image_url ? (
           <img
             src={event.image_url}
@@ -137,5 +138,6 @@ export default function EventCard({ event, showDeleteButton = false, onDelete, s
         )}
       </CardContent>
     </Card>
+    </AnimatedCard>
   );
 }

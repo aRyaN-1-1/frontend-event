@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiFetch } from '@/lib/api';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,14 +36,8 @@ export default function AddEvent() {
   // Load coaches
   useEffect(() => {
     const loadCoaches = async () => {
-      const { data: coachesData } = await supabase
-        .from('coaches')
-        .select('id, name')
-        .order('name');
-      
-      if (coachesData) {
-        setCoaches(coachesData);
-      }
+      const coachesData = await apiFetch<any[]>(`/coaches`);
+      setCoaches(coachesData);
     };
     
     loadCoaches();
@@ -77,23 +71,14 @@ export default function AddEvent() {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `events/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('event-images')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('event-images')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { url } = await apiFetch<{ url: string }>(`/events/upload-image`, { method: 'POST', body: { dataUrl: base64 } });
+      return url;
     } catch (error) {
       console.error('Error uploading image:', error);
       return null;
@@ -105,6 +90,13 @@ export default function AddEvent() {
     setIsLoading(true);
 
     try {
+      // Basic validation
+      if (!formData.name || !formData.short_description || !formData.description) throw new Error('Please fill all required fields');
+      if (!formData.event_type || !formData.location || !formData.event_date) throw new Error('Please fill all required fields');
+      const price = parseFloat(formData.price_per_person);
+      const slots = parseInt(formData.available_slots);
+      if (isNaN(price) || price < 0) throw new Error('Price must be a positive number');
+      if (isNaN(slots) || slots <= 0) throw new Error('Available slots must be greater than 0');
       let imageUrl = null;
       
       if (imageFile) {
@@ -121,20 +113,14 @@ export default function AddEvent() {
         event_type: formData.event_type,
         location: formData.location,
         event_date: formData.event_date,
-        price_per_person: parseFloat(formData.price_per_person),
-        available_slots: parseInt(formData.available_slots),
+        price_per_person: price,
+        available_slots: slots,
         image_url: imageUrl,
         created_by: user?.id,
         coach_id: formData.coach_id || null
       };
 
-      const { error } = await supabase
-        .from('events')
-        .insert([eventData]);
-
-      if (error) {
-        throw error;
-      }
+      await apiFetch(`/events`, { method: 'POST', body: eventData });
 
       toast({
         title: "Success",
