@@ -209,7 +209,6 @@ export default function Coaches() {
         )}
       </main>
     </div>
-  </div>
   </AnimatedPage>
 );
 }
